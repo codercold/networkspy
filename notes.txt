@@ -1,0 +1,440 @@
+
+Issues
+----------
+
+1. Program crashes if "token[1]" (udp, tcp, etc) is omitted - RESOLVED
+2. Not all options implemented
+3. Logging causes program to crash sometimes
+
+
+
+TO DO
+----------
+
+1.  Implement XML Output
+2.  Implement binary output  - DONE
+3.  Add Open and Save icons to toolbar  - BUZZ
+4.  Check remote capture option
+5.  Improve Rules DialogBox UI
+6.  Delete empty log files	- DONE
+7.  Log statistics to ODBC database
+
+
+
+
+
+
+
+
+
+
+
+
+SAVED_CODE
+---------------
+
+
+
+
+/*  IDS Pattern Matching STARTS here */
+	if (bApplyFilter && (ptype == 0x0800)) {
+		if (ip->prot == R_ICMP)		node = root.alert.IcmpList;
+		else if (ip->prot == R_UDP)	node = root.alert.UdpList;
+		else if (ip->prot == R_TCP)	node = root.alert.TcpList;
+
+		while (node != NULL)
+		{
+			if (((node->sip & node->smask) == (ip->sourceip & node->smask))  &&
+				((node->dip & node->dmask) == (ip->destip   & node->dmask)))
+				bMatch = TRUE;
+					
+			if ((bMatch == FALSE) && (node->dir == BI_DIR))
+				if (((node->sip & node->smask) == (ip->destip   & node->smask))  &&
+					((node->dip & node->dmask) == (ip->sourceip & node->dmask)))
+					bMatch = TRUE;
+				
+
+			if (bMatch)
+			{
+				bMatch = MatchIpFields(node, ip);
+				if (bMatch) {
+					if (ip->prot == R_ICMP)	 bMatch = MatchIcmpFields(node, icmp);
+					if (ip->prot == R_UDP)   bMatch = MatchUdpFields(node, udp);
+					if (ip->prot == R_TCP)	 bMatch = MatchTcpFields(node, tcp);
+				}
+
+				if (bMatch && node->content_set) 
+					bMatch = MatchContent(szBuffer, size, node->content, lstrlen(node->content));
+
+				if (bMatch)  break;
+			}
+			bMatch = FALSE; // if there was a match, it would have broken out of the loop
+			node = node->next;
+		}
+		if (bMatch)  lstrcpy(msg, node->msg);
+	}
+		
+	//if (bMatch == FALSE)  return;
+	/*  IDS Pattern Matching ENDS here */
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOID AddPacketToList(SYSTEMTIME rTime, unsigned char *szBuffer, int size)
+{
+	unsigned char	src[32], dst[32], type[12], info[64];
+	char			numbytes[12], *service;
+
+	struct ethernet_802_3	*eth;
+	struct iphdr	*ip;
+	struct arppkt	*arp;
+	struct udphdr	*udp;
+	struct icmphdr	*icmp;
+	struct tcphdr	*tcp;
+
+	unsigned short  ptype, port, src_port, dst_port;
+	unsigned int	sai;
+	int				i, size_iphdr, size_framehdr;  
+	BOOL			bFound;
+
+	if (size < 42)	// probably a corrupt packet
+		return;
+
+	size_framehdr = 14;
+	
+	src[0] = '\0';
+	dst[0] = '\0';
+	info[0] = '\0';
+	wsprintf(numbytes, "%d", size);
+	wsprintf(type, "Unknown");
+
+	eth = (struct ethernet_802_3 *) szBuffer;
+
+	
+	if (ntohs(eth->length) > 0x05DC)	// its an ethernet_II frame
+	{
+		ptype = eth->length;	/* actually is type since its an eth_II frame */
+		size_framehdr = 14;
+	}
+	else							// its an 802.3 frame
+	{
+		ptype = eth->type;
+		size_framehdr = 22;
+	}
+	ptype = ntohs(ptype);
+
+
+	if (ptype == 0x0800)	//'tis IP packet
+	{
+		ip = (struct iphdr *) &szBuffer[size_framehdr];
+		size_iphdr = (ip->verlen & 0x0f) * 4;
+
+		wsprintf(src, "%s", IpToString(ip->sourceip));
+		wsprintf(dst, "%s", IpToString(ip->destip));
+		
+		if (filter.srcip)
+		{
+			bFound = FALSE;
+			for (i = 0; i < filter.nSourceIPs; i++)
+				if (inet_addr(szSourceIP[i]) == ip->sourceip)
+				{
+					bFound = TRUE;
+					break;
+				}
+		}
+		if (!bFound) return;
+
+		if (filter.destip)
+		{
+			bFound = FALSE;
+			for (i = 0; i < filter.nDestinationIPs; i++)
+				if (inet_addr(szDestinationIP[i]) == ip->destip)
+				{
+					bFound = TRUE;
+					break;
+				}
+		}
+		if (!bFound) return;
+				
+				
+		if (ip->prot == 0x11)		// UDP
+		{
+			if (!filter.udp)
+				return;
+			udp = (struct udphdr *) &szBuffer[size_framehdr + size_iphdr];
+			wsprintf(type, "udp");
+			port = ntohs(udp->dstport);
+			if (filter.port && (port != filter.the_port))
+				return;
+			
+			src_port = ntohs(udp->srcport);
+			dst_port = ntohs(udp->dstport);
+			
+			if (service = find_in_table(dst_port, 0))
+				lstrcpy(info, service);
+			else if (service = find_in_table(src_port, 0))
+				lstrcpy(info, service);
+			else
+				wsprintf(info, "port: %d --> %d", src_port, dst_port);
+		}
+				
+				
+		else if (ip->prot == 0x01)	// ICMP
+		{
+			if (!filter.icmp)
+				return;
+			icmp = (struct icmphdr *) &szBuffer[size_framehdr + size_iphdr];
+			wsprintf(type, "icmp");
+			if (icmp->type <= 16)
+				lstrcpy(info, ICMP_type[icmp->type]);
+		}
+				
+				
+		else if (ip->prot == 0x02)		// IGMP
+		{
+			if (!filter.igmp)
+				return;
+			wsprintf(type, "igmp");
+		}
+				
+				
+		else if (ip->prot == 0x06)		// TCP
+		{
+			if (!filter.tcp)
+				return;
+			tcp = (struct tcphdr *) &szBuffer[size_framehdr + size_iphdr];
+			if (filter.port && (ntohs(tcp->srcport) != filter.the_port) && (ntohs(tcp->dstport) != filter.the_port))
+				return;
+			wsprintf(type, "tcp");
+			src_port = ntohs(tcp->srcport);
+			dst_port = ntohs(tcp->dstport);
+			if (service = find_in_table(dst_port, 1))
+				lstrcpy(info, service);
+			else if (service = find_in_table(src_port, 1))
+				lstrcpy(info, service);
+			
+			//wsprintf(info, "%s  (%d <--> %d)", info, src_port, dst_port);
+			else
+				wsprintf(info, "port: %d --> %d", src_port, dst_port);
+		}
+		else if (ip->prot == 0x32)		// SIPP-ESP
+		{
+			wsprintf(type, "sipp-esp");
+			memcpy(&sai, &szBuffer[size_framehdr + size_iphdr], sizeof(int));
+			wsprintf(info, "Security Assoc.ID = %d", ntohl(sai));
+		}
+		else					// unknown IP
+		{
+			if (!filter.unknown)
+				return;
+			
+			wsprintf(type, "ip unknown");
+			wsprintf(info, "protocol = 0x%.2x%", ip->prot);
+		}
+	}
+
+
+	else if (ptype == 0x0806)	// ARP
+	{	
+		if (!filter.arp)
+			return;
+		arp = (struct arppkt *) &szBuffer[size_framehdr];
+		wsprintf(src, "%d.%d.%d.%d", arp->sender_ip[0], arp->sender_ip[1],arp->sender_ip[2],arp->sender_ip[3]);
+		if (ntohs(arp->operation) == 1)
+		{
+			wsprintf(type, "arp req.");
+			wsprintf(dst, "Broadcast");
+			wsprintf(info, "%d.%d.%d.%d = ?", arp->target_ip[0], arp->target_ip[1],arp->target_ip[2],arp->target_ip[3]);
+		}
+		else if (ntohs(arp->operation) == 2)
+		{
+			wsprintf(type, "arp resp.");
+			wsprintf(dst, "%d.%d.%d.%d", arp->target_ip[0], arp->target_ip[1],arp->target_ip[2],arp->target_ip[3]);
+			wsprintf(info, "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X", arp->sender_ha[0], arp->sender_ha[1],arp->sender_ha[2],arp->sender_ha[3],arp->sender_ha[4],arp->sender_ha[5]);
+		}
+	}
+	else if (ptype == 0x8035)	// RARP
+	{
+		if (!filter.arp)
+			return;
+		arp = (struct arppkt *) &szBuffer[size_framehdr];
+		wsprintf(src, "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X = ?", arp->sender_ha[0], arp->sender_ha[1],arp->sender_ha[2],arp->sender_ha[3],arp->sender_ha[4],arp->sender_ha[5]);
+		if (ntohs(arp->operation) == 3)
+		{
+			wsprintf(type, "rarp req.");
+			wsprintf(dst, "Broadcast");
+			wsprintf(info, "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X = ?", arp->sender_ha[0], arp->sender_ha[1],arp->sender_ha[2],arp->sender_ha[3],arp->sender_ha[4],arp->sender_ha[5]);
+		}
+		else if (ntohs(arp->operation) == 4)
+		{
+			wsprintf(type, "rarp resp.");
+			wsprintf(dst, "%d.%d.%d.%d", arp->target_ip[0], arp->target_ip[1],arp->target_ip[2],arp->target_ip[3]);
+			wsprintf(info, "%d.%d.%d.%d", arp->target_ip[0], arp->target_ip[1],arp->target_ip[2],arp->target_ip[3]);
+		}
+
+	}
+	else // unknown type of packet
+	{
+		if (!filter.unknown)
+			return;
+		wsprintf(src, "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X", szBuffer[6], szBuffer[7], szBuffer[8], szBuffer[9], szBuffer[10], szBuffer[11]);
+		wsprintf(dst, "%.2X:%.2X:%.2X:%.2X:%.2X:%.2X", szBuffer[0], szBuffer[1], szBuffer[2], szBuffer[3], szBuffer[4], szBuffer[5]);
+		if (size_framehdr == 14)
+		{
+			wsprintf(type, "ethernet_II frame");
+			wsprintf(info, "type = 0x%.4x%", ptype);
+		}
+		else if ((eth->dsap == 0xf0) && (eth->ssap == 0xf0))
+		{
+			wsprintf(type, "netbeui");
+			wsprintf(info, "type = 0x%.4x", ptype);
+		}
+		else if ((eth->dsap == 0xff) && (eth->ssap == 0xff))
+		{
+			wsprintf(type, "ipx");
+			lstrcpy(info, "novell");
+		}
+		else 
+		{
+			wsprintf(type, "802.3 frame");
+			wsprintf(info, "type = 0x%.4x", ptype);
+		}
+	}
+
+
+	AddItem(rTime, szBuffer, size, src, dst, numbytes, type, info);
+}
+
+
+
+
+
+
+
+
+
+
+------------------------------
+
+
+
+
+
+
+
+
+
+
+
+BOOL CALLBACK FiltersDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	DWORD	dw;
+	int		i;
+	char	szKeyname[32];
+
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		CenterWindow(hDlg);
+		SendDlgItemMessage(hDlg, IDC_EDIT_PORT, EM_SETLIMITTEXT, (WPARAM) 5, 0);
+
+		SendDlgItemMessage(hDlg, IDC_CHECK_ARP, BM_SETCHECK, (WPARAM)filter.arp, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_ICMP, BM_SETCHECK, (WPARAM)filter.icmp, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_UDP, BM_SETCHECK, (WPARAM)filter.udp, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_TCP, BM_SETCHECK, (WPARAM)filter.tcp, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_IGMP, BM_SETCHECK, (WPARAM)filter.igmp, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_UNKNOWN, BM_SETCHECK, (WPARAM)filter.unknown, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_SRC_IP, BM_SETCHECK, (WPARAM)filter.srcip, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_DEST_IP, BM_SETCHECK, (WPARAM)filter.destip, 0);
+		SendDlgItemMessage(hDlg, IDC_CHECK_PORT, BM_SETCHECK, (WPARAM)filter.port, 0);
+		SetDlgItemInt(hDlg, IDC_EDIT_PORT, filter.the_port, FALSE);
+		
+		for (i = 0; i < filter.nSourceIPs; i++)
+			SendDlgItemMessage(hDlg, IDC_LIST_SOURCE_IP, LB_ADDSTRING, 0, (LPARAM) szSourceIP[i]);
+
+		for (i = 0; i < filter.nDestinationIPs; i++)
+			SendDlgItemMessage(hDlg, IDC_LIST_DESTINATION_IP, LB_ADDSTRING, 0, (LPARAM) szDestinationIP[i]);
+
+		return TRUE;
+
+		
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case ID_CLOSE:
+			filter.arp = SendDlgItemMessage(hDlg, IDC_CHECK_ARP, BM_GETCHECK, 0, 0);
+			filter.icmp = SendDlgItemMessage(hDlg, IDC_CHECK_ICMP, BM_GETCHECK, 0, 0);
+			filter.udp = SendDlgItemMessage(hDlg, IDC_CHECK_UDP, BM_GETCHECK, 0, 0);
+			filter.tcp = SendDlgItemMessage(hDlg, IDC_CHECK_TCP, BM_GETCHECK, 0, 0);
+			filter.igmp = SendDlgItemMessage(hDlg, IDC_CHECK_IGMP, BM_GETCHECK, 0, 0);
+			filter.unknown = SendDlgItemMessage(hDlg, IDC_CHECK_UNKNOWN, BM_GETCHECK, 0, 0);
+			filter.srcip = SendDlgItemMessage(hDlg, IDC_CHECK_SRC_IP, BM_GETCHECK, 0, 0);
+			filter.destip = SendDlgItemMessage(hDlg, IDC_CHECK_DEST_IP, BM_GETCHECK, 0, 0);
+			filter.port = SendDlgItemMessage(hDlg, IDC_CHECK_PORT, BM_GETCHECK, 0, 0);
+			dw = GetDlgItemInt(hDlg, IDC_EDIT_PORT, NULL, FALSE);
+			filter.the_port = (unsigned short) dw;
+					
+			filter.nSourceIPs = SendDlgItemMessage(hDlg, IDC_LIST_SOURCE_IP, LB_GETCOUNT, 0, 0);
+			for (i = 0; i < filter.nSourceIPs; i++)
+			{
+				SendDlgItemMessage(hDlg, IDC_LIST_SOURCE_IP, LB_GETTEXT, (WPARAM) i, (LPARAM) szSourceIP[i]);
+				wsprintf(szKeyname, "SourceIP%d", i);
+				WritePrivateProfileString("Packet Capture", szKeyname, szSourceIP[i], "NetworkSpy.ini");
+			}
+
+			filter.nDestinationIPs = SendDlgItemMessage(hDlg, IDC_LIST_DESTINATION_IP, LB_GETCOUNT, 0, 0);
+			for (i = 0; i < filter.nDestinationIPs; i++)
+			{
+				SendDlgItemMessage(hDlg, IDC_LIST_DESTINATION_IP, LB_GETTEXT, (WPARAM) i, (LPARAM) szDestinationIP[i]);
+				wsprintf(szKeyname, "DestinationIP%d", i);
+				WritePrivateProfileString("Packet Capture", szKeyname, szDestinationIP[i], "NetworkSpy.ini");
+			}
+
+			WritePrivateProfileStruct("Packet Capture", "Filters", &filter, sizeof(filter), "NetworkSpy.ini");
+
+			EndDialog(hDlg, 0);
+			return TRUE;
+		
+		case ID_CANCEL:
+			EndDialog(hDlg, 0);
+			return TRUE;
+
+		case IDC_BUTTON_ADD_SOURCE:
+			if (DialogBox(hInst, MAKEINTRESOURCE(IDD_INPUT), hDlg, InputDlgProc))
+				SendDlgItemMessage(hDlg, IDC_LIST_SOURCE_IP, LB_ADDSTRING, 0, (LPARAM) szInput);
+			return TRUE;
+
+		case IDC_BUTTON_REMOVE_SOURCE:
+			i = SendDlgItemMessage(hDlg, IDC_LIST_SOURCE_IP, LB_GETCURSEL, 0, 0);
+			if (i != LB_ERR)
+				SendDlgItemMessage(hDlg, IDC_LIST_SOURCE_IP, LB_DELETESTRING, (WPARAM) i, 0);
+			return TRUE;
+
+		case IDC_BUTTON_ADD_DESTINATION:
+			if (DialogBox(hInst, MAKEINTRESOURCE(IDD_INPUT), hDlg, InputDlgProc))
+				SendDlgItemMessage(hDlg, IDC_LIST_DESTINATION_IP, LB_ADDSTRING, 0, (LPARAM) szInput);
+			return TRUE;
+
+		case IDC_BUTTON_REMOVE_DESTINATION:
+			i = SendDlgItemMessage(hDlg, IDC_LIST_DESTINATION_IP, LB_GETCURSEL, 0, 0);
+			if (i != LB_ERR)
+				SendDlgItemMessage(hDlg, IDC_LIST_DESTINATION_IP, LB_DELETESTRING, (WPARAM) i, 0);
+			return TRUE;
+		}
+		break;
+	
+	case WM_CLOSE:
+		EndDialog(hDlg, 0);
+		return TRUE;
+	}
+	return FALSE;
+}

@@ -1,0 +1,888 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAIN DIALOG DISCARDABLE  0, 0, 407, 266
+STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | 
+    WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Network Spy 2.0"
+CLASS "Network Spy 2.0"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Packet Count:",IDC_STATIC,9,163,49,8
+    LTEXT           "Throughput:",IDC_STATIC,7,94,45,8
+    LTEXT           "Bytes:",IDC_STATIC,9,195,23,8
+    LTEXT           "Peak Throughput",IDC_STATIC,7,128,59,8
+    EDITTEXT        IDC_EDIT_COUNT,26,173,67,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_READONLY | ES_NUMBER
+    EDITTEXT        IDC_EDIT_BYTES,26,206,67,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_READONLY | ES_NUMBER
+    EDITTEXT        IDC_EDIT_THRUPUT,25,104,67,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_READONLY | ES_NUMBER
+    EDITTEXT        IDC_EDIT_PEAK,25,138,67,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_READONLY | ES_NUMBER
+    LTEXT           "Time Elapsed:",IDC_STATIC,9,231,46,8
+    EDITTEXT        IDC_EDIT_TIME,26,242,67,14,ES_CENTER | ES_AUTOHSCROLL | 
+                    ES_READONLY | ES_NUMBER
+END
+
+IDD_DECODE DIALOG DISCARDABLE  0, 0, 273, 186
+STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | 
+    WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Decoder"
+MENU IDR_MENU3
+FONT 8, "Courier New"
+BEGIN
+    CONTROL         "Custom1",IDC_HTML,"QHTM_Window_Class_001",WS_BORDER | 
+                    WS_TABSTOP,3,30,267,90
+    EDITTEXT        IDC_EDIT_RAWDATA,3,123,267,60,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL
+END
+
+IDD_ADAPTERS DIALOG DISCARDABLE  0, 0, 218, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Adapters"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Select",ID_CLOSE,52,149,50,14
+    PUSHBUTTON      "Cancel",ID_CANCEL,115,149,50,14
+    LTEXT           "Select an adapter:",IDC_STATIC,33,9,62,9
+    LISTBOX         IDC_LIST1,6,24,205,48,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    ICON            IDI_ICON1,IDC_STATIC,6,3,21,20
+    LTEXT           "Medium:",IDC_STATIC,43,87,28,8
+    LTEXT           "Current Address:",IDC_STATIC,20,100,53,8
+    LTEXT           "Max Frame Size:",IDC_STATIC,19,113,53,8
+    LTEXT           "Link Speed:",IDC_STATIC,33,126,39,8
+    LTEXT           "Unknown",IDC_MEDIUM,85,87,110,9
+    LTEXT           "Unknown",IDC_ADDRESS,85,100,110,9
+    LTEXT           "Unknown",IDC_FRAME_SIZE,85,113,110,9
+    LTEXT           "Unknown",IDC_LINK_SPEED,85,126,110,9
+    GROUPBOX        "Properties",IDC_STATIC,6,76,205,65
+END
+
+IDD_PROGRESS DIALOG DISCARDABLE  50, 60, 194, 92
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Packet Capture"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",ID_CANCEL,137,71,50,14
+    CONTROL         "Animate1",IDC_ANIMATE1,"SysAnimate32",ACS_TRANSPARENT | 
+                    ACS_AUTOPLAY | WS_TABSTOP,7,7,180,35
+    LTEXT           "Saving captured packets to file. Please wait...",
+                    IDC_TEXT,7,41,147,10
+    CONTROL         "Progress1",IDC_PROGRESS1,"msctls_progress32",0x0,7,53,
+                    180,8
+    LTEXT           "Starting...",IDC_STATUS,7,62,130,8
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 222, 182
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Network Spy"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Close",ID_CLOSE,166,163,50,14
+    CONTROL         "Custom1",IDC_HTML,"QHTM_Window_Class_001",WS_BORDER | 
+                    WS_TABSTOP,4,3,213,88
+    GROUPBOX        "Registration",IDC_STATIC,4,94,214,60
+    LTEXT           "User Name: ",IDC_STATIC,30,112,40,8
+    LTEXT           "Registration Key:",IDC_STATIC,15,133,54,8
+    EDITTEXT        IDC_EDIT_USERNAME,76,109,133,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_REGKEY,76,130,134,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Register",IDC_REGISTER,106,163,50,14
+    PUSHBUTTON      "Buy",IDC_BUY,6,163,50,14
+END
+
+IDD_REMOTECAPTURE DIALOG DISCARDABLE  0, 0, 232, 127
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Remote Capture"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Server Properties",IDC_STATIC,8,6,151,66
+    LTEXT           "IP Address:",IDC_STATIC,19,21,37,8
+    EDITTEXT        IDC_EDIT_IP,61,20,90,12,ES_AUTOHSCROLL
+    LTEXT           "Login:",IDC_STATIC,34,36,20,8
+    EDITTEXT        IDC_EDIT_USER,61,35,90,12,ES_AUTOHSCROLL
+    LTEXT           "Password:",IDC_STATIC,22,51,34,8
+    EDITTEXT        IDC_EDIT_PASSWORD,61,51,90,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    PUSHBUTTON      "Connect",ID_CONNECT,168,12,50,14
+    PUSHBUTTON      "Capture",ID_CAPTURE,168,33,50,14,WS_DISABLED
+    PUSHBUTTON      "Close",ID_CANCEL,168,93,50,14
+    CONTROL         "Progress1",IDC_PROGRESS1,"msctls_progress32",0x0,9,93,
+                    150,12
+    LTEXT           "Idle",IDC_STATUS,11,82,126,8
+    LTEXT           "",IDC_STATUS2,9,108,78,9
+END
+
+IDD_SERVER DIALOG DISCARDABLE  0, 0, 199, 130
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Server"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Authorized User:",IDC_STATIC,12,10,53,8
+    EDITTEXT        IDC_EDIT_USER,71,9,114,12,ES_AUTOHSCROLL
+    LTEXT           "Password:",IDC_STATIC,29,28,34,8
+    EDITTEXT        IDC_EDIT_PASSWORD,71,27,114,12,ES_AUTOHSCROLL
+    LTEXT           "Max capture time:",IDC_STATIC,8,46,57,8
+    EDITTEXT        IDC_EDIT_TIMEOUT,71,45,33,12,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,99,45,9,
+                    12
+    LTEXT           "sec",IDC_STATIC,108,47,12,8
+    LTEXT           "Debug:",IDC_STATIC,12,68,26,8
+    LISTBOX         IDC_LIST_DEBUG,9,78,120,45,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Cancel",ID_CANCEL,137,78,50,14
+    DEFPUSHBUTTON   "Minimize",ID_MINIMIZE,137,99,50,14
+END
+
+IDD_PRINT_STATUS DIALOG DISCARDABLE  0, 0, 166, 71
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Print Status"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_ICON2,IDC_STATIC,9,6,20,20
+    LTEXT           "Starting print job...",IDC_STATUS,30,33,123,15
+    LTEXT           "Unknown",IDC_PRINTER,42,12,120,12
+    PUSHBUTTON      "Cancel",IDC_CANCEL,108,51,50,14
+END
+
+IDD_INPUT DIALOG DISCARDABLE  0, 0, 168, 73
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Input"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Enter IP Address:",IDC_STATIC,11,8,68,8
+    EDITTEXT        IDC_EDIT_INPUT,10,20,144,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Ok",ID_OK,88,48,50,14
+    PUSHBUTTON      "Cancel",ID_CANCEL,28,48,50,14
+END
+
+IDD_PORTS DIALOGEX 0, 0, 217, 231
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Protocols"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    CONTROL         "List1",IDC_LISTVIEW,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_TABSTOP,7,7,203,115,WS_EX_CLIENTEDGE
+    GROUPBOX        "Add/Remove",IDC_STATIC,7,128,203,75
+    LTEXT           "Port",IDC_STATIC,25,147,14,8
+    EDITTEXT        IDC_EDIT_PORT,52,145,54,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Label",IDC_STATIC,23,164,18,8
+    EDITTEXT        IDC_EDIT_LABEL,52,162,54,12,ES_AUTOHSCROLL
+    LTEXT           "Protocol",IDC_STATIC,16,180,27,8
+    COMBOBOX        IDC_COMBO_PROTOCOL,52,179,54,45,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add",IDC_BUTTON_ADD,129,163,70,14
+    DEFPUSHBUTTON   "Close",ID_CLOSE,160,210,50,14
+    PUSHBUTTON      "Delete Selected",IDC_BUTTON_DELETE,129,142,70,14
+END
+
+IDD_DUMP DIALOG DISCARDABLE  0, 0, 198, 74
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Packet Capture"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDI_ICON1,IDC_STATIC,7,7,20,20
+    LTEXT           "Packet Capture Complete.",IDC_STATIC,42,13,149,16
+    PUSHBUTTON      "Save to Disk",IDC_BUTTON_DISK,10,53,56,14
+    PUSHBUTTON      "View",IDC_BUTTON_VIEW,71,53,56,14
+    PUSHBUTTON      "Cancel",IDC_BUTTON_CANCEL,132,53,56,14
+END
+
+IDD_DELETE DIALOG DISCARDABLE  0, 0, 205, 89
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Packet Capture"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Animate1",IDC_ANIMATE1,"SysAnimate32",ACS_CENTER | 
+                    ACS_TRANSPARENT | ACS_AUTOPLAY | WS_TABSTOP,7,6,191,37
+    LTEXT           "Flushing allocated memory. Please wait...",IDC_TASK,7,
+                    49,130,8
+    CONTROL         "Progress1",IDC_PROGRESS1,"msctls_progress32",0x0,7,60,
+                    191,8
+    LTEXT           "0 packets deleted",IDC_STATUS,7,71,109,9
+END
+
+IDD_LOGGING DIALOG DISCARDABLE  0, 0, 238, 98
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Logging Options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Max file size",IDC_STATIC,14,31,39,8
+    EDITTEXT        IDC_EDIT_FILESIZE,59,29,34,13,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,89,29,11,
+                    13
+    LTEXT           "MB",IDC_STATIC,98,31,12,8
+    DEFPUSHBUTTON   "Save",ID_SAVE,127,77,50,14
+    PUSHBUTTON      "Cancel",ID_CANCEL,181,77,50,14
+    LTEXT           "Log Directory",IDC_STATIC,7,9,43,8
+    EDITTEXT        IDC_EDIT_FINAL_DIRECTORY,58,9,173,13,ES_AUTOHSCROLL
+    LTEXT           "File Format:",IDC_STATIC,15,52,39,8
+    LISTBOX         IDC_LIST_FORMAT,58,50,56,30,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_PACKETG DIALOG DISCARDABLE  0, 0, 416, 337
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Packet Generator"
+MENU IDR_MENU4
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Packet size:",IDC_STATIC,7,10,40,8
+    EDITTEXT        IDC_PACKET_SIZE,51,8,42,13,ES_AUTOHSCROLL
+    LTEXT           "bytes",IDC_STATIC,99,10,18,8
+    PUSHBUTTON      "Send Packet",IDC_SEND,194,7,59,14
+    CONTROL         "<html><body bgcolor=#ffffff></body></html>",IDC_HTML,
+                    "QHTM_Window_Class_001",WS_BORDER | WS_TABSTOP,7,34,402,
+                    96
+    PUSHBUTTON      "Set",IDC_SET,128,7,50,14
+END
+
+IDD_DEBUG DIALOG DISCARDABLE  0, 0, 331, 382
+STYLE WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Dialog"
+FONT 8, "Courier"
+BEGIN
+    DEFPUSHBUTTON   "Close",ID_CLOSE,274,7,50,14
+    EDITTEXT        IDC_EDIT_DEBUG,7,25,317,350,ES_MULTILINE | ES_OEMCONVERT | 
+                    ES_WANTRETURN | WS_VSCROLL
+END
+
+IDD_RULES DIALOGEX 0, 0, 423, 250
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Filters/Rules Manager"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_RULE,39,26,305,15,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Add",IDC_ADD,362,26,50,14
+    PUSHBUTTON      "Delete",IDC_DELETE,362,45,50,14
+    PUSHBUTTON      "Save",IDC_SAVE,309,230,50,14
+    LTEXT           "New Rule",IDC_STATIC,6,29,32,9
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_EDITLABELS | LVS_NOSORTHEADER | 
+                    WS_TABSTOP,2,63,419,160,WS_EX_CLIENTEDGE
+    PUSHBUTTON      "Cancel",IDC_CANCEL,363,230,50,14
+    LTEXT           "<action> <protocol> <source> <port> -> <destination> <port> (<list of options>)",
+                    IDC_STATIC,45,42,246,9
+    CONTROL         "Apply Filter",IDC_RADIO_FILTER,"Button",
+                    BS_AUTORADIOBUTTON,19,6,50,10
+    CONTROL         "Capture All Packets",IDC_RADIO_NOFILTER,"Button",
+                    BS_AUTORADIOBUTTON,79,6,78,10
+    PUSHBUTTON      "Move UP",IDC_MOVEUP,6,230,50,14
+    PUSHBUTTON      "Move DOWN",IDC_MOVEDOWN,61,230,50,14
+    PUSHBUTTON      "Default Rules",IDC_DEFAULT,163,4,50,14
+END
+
+IDD_TRACEROUTE DIALOG DISCARDABLE  0, 0, 420, 270
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Trace Route"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Trace Route to Host",ID_TRACE,135,32,124,14
+    LTEXT           "Host Address:",IDC_STATIC,18,16,46,8
+    COMBOBOX        IDC_COMBO_HOSTS,68,14,191,98,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    GROUPBOX        "",IDC_STATIC,8,3,266,51
+    PUSHBUTTON      "",IDC_COPY,374,31,31,25,BS_ICON
+END
+
+IDD_HOSTLOOKUP DIALOG DISCARDABLE  0, 0, 211, 151
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Host Lookup"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Resolve",ID_RESOLVE,141,17,63,14
+    PUSHBUTTON      "Close",ID_CLOSE,141,35,63,14
+    LTEXT           "Hostname or IP address:",IDC_STATIC,7,7,80,8
+    COMBOBOX        IDC_COMBO_HOSTNAMES,7,17,116,59,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Official name:",IDC_STATIC,7,36,49,8
+    EDITTEXT        IDC_EDIT_OFFICIALNAME,7,46,116,12,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    LTEXT           "Host aliases:",IDC_STATIC,7,66,44,8
+    LTEXT           "Host addresses:",IDC_STATIC,109,66,60,8
+    EDITTEXT        IDC_EDIT_ALIASES,7,76,95,68,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | ES_WANTRETURN | 
+                    WS_VSCROLL
+    EDITTEXT        IDC_EDIT_ADDRESSES,109,76,95,68,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
+IDD_PING DIALOG DISCARDABLE  0, 0, 346, 190
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Ping"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Ping",ID_PING,200,33,50,14
+    LTEXT           "IP Address to send ping to:",IDC_STATIC,18,15,86,8
+    LTEXT           "Number of times:",IDC_STATIC,50,35,54,8
+    COMBOBOX        IDC_COMBO_HOSTS,110,12,140,94,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_NUM,112,32,33,13,ES_AUTOHSCROLL
+    CONTROL         "Spin1",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,144,32,11,
+                    14
+    GROUPBOX        "",IDC_STATIC,9,3,255,51
+    PUSHBUTTON      "",IDC_COPY,302,22,32,32,BS_ICON
+END
+
+IDD_WHOIS DIALOG DISCARDABLE  0, 0, 358, 318
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Whois"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Lookup",ID_LOOKUP,220,48,50,14
+    LTEXT           "Domain Name / IP Address:",IDC_STATIC,17,14,90,10
+    COMBOBOX        IDC_COMBO_DOMAINS,111,12,143,92,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_SERVERS,111,29,143,72,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "",IDC_STATIC,7,1,272,68
+    EDITTEXT        IDC_EDIT_RESULT,0,80,357,221,ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | 
+                    WS_VSCROLL
+    PUSHBUTTON      "",IDC_COPY,316,45,35,27,BS_ICON
+    LTEXT           "Whois Server:",IDC_STATIC,59,31,46,8
+END
+
+IDD_PRINT_PREVIEW DIALOG DISCARDABLE  0, 0, 403, 276
+STYLE WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Print Preview"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Print",ID_PRINT,4,3,50,14
+    CONTROL         "",IDC_HTML,"QHTM_Window_Class_001",WS_BORDER | 
+                    WS_TABSTOP,1,22,399,251
+    PUSHBUTTON      "Close",IDC_CLOSE,61,3,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Data
+//
+
+LOGO.PNG                RCDATA  DISCARDABLE     "logo.png"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_MAIN, DIALOG
+    BEGIN
+        RIGHTMARGIN, 400
+        BOTTOMMARGIN, 259
+    END
+
+    IDD_DECODE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 179
+    END
+
+    IDD_ADAPTERS, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 211
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 163
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 187
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 215
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+
+    IDD_REMOTECAPTURE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 120
+    END
+
+    IDD_SERVER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 192
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 123
+    END
+
+    IDD_PRINT_STATUS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 159
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 64
+    END
+
+    IDD_INPUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 161
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 66
+    END
+
+    IDD_PORTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 210
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 224
+    END
+
+    IDD_DUMP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 191
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 67
+    END
+
+    IDD_DELETE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 198
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 82
+    END
+
+    IDD_LOGGING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 231
+        TOPMARGIN, 9
+        BOTTOMMARGIN, 91
+    END
+
+    IDD_PACKETG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 409
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 330
+    END
+
+    IDD_DEBUG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 324
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 375
+    END
+
+    IDD_RULES, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 416
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 243
+    END
+
+    IDD_TRACEROUTE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 413
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 263
+    END
+
+    IDD_HOSTLOOKUP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+
+    IDD_PING, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 339
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 183
+    END
+
+    IDD_WHOIS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 351
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 311
+    END
+
+    IDD_PRINT_PREVIEW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 396
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 269
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Import Data...",             ID_FILE_IMPORT
+        MENUITEM "Export Data...",              ID_FILE_EXPORT
+        MENUITEM SEPARATOR
+        MENUITEM "&Print...",                   ID_PRINT_DLG
+        MENUITEM "Print Preview",               ID_PRINT_PREVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       IDC_EXIT
+    END
+    POPUP "&Action"
+    BEGIN
+        MENUITEM "&Start",                      IDC_LISTEN
+        MENUITEM "St&op",                       IDC_STOP
+        MENUITEM "&Decode",                     IDC_DECODE
+        MENUITEM "&Resolve IPs",                ID_ACTION_RESOLVEIPS
+        MENUITEM SEPARATOR
+        MENUITEM "&Remote Listen...",           IDC_REMOTE
+        MENUITEM SEPARATOR
+        MENUITEM "&Clear",                      IDC_CLEAR
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Ports...",                   ID_OPTIONS_PORTS
+        MENUITEM "Adapter...",                  IDC_ADAPTER
+        MENUITEM "Logging...",                  ID_OPTIONS_LOGGING
+        MENUITEM "&Manage Rules...",            ID_OPTIONS_MANAGERULES
+        MENUITEM SEPARATOR
+        POPUP "Capture mode"
+        BEGIN
+            MENUITEM "Normal mode",                 ID_OPTIONS_NORMALMODE
+            , CHECKED
+            MENUITEM "Buffer and dump!",            ID_OPTIONS_BUFFERDUMP
+        END
+        MENUITEM "&Become server...",           ID_OPTIONS_SERVERMODE
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Host Lookup...",             ID_TOOLS_HOSTLOOKUP
+        MENUITEM "&Traceroute...",              ID_TOOLS_TRACEROUTE
+        MENUITEM "&Ping...",                    ID_TOOLS_PING
+        MENUITEM "&Whois...",                   ID_TOOLS_WHOIS
+        MENUITEM SEPARATOR
+        MENUITEM "&Packet Generator",           ID_PACKET_GENERATOR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "Help &Topics",                IDC_ONLINE_HELP
+        MENUITEM "&Debug",                      ID_TOOLS_DEBUG
+        MENUITEM SEPARATOR
+        MENUITEM "&About",                      IDC_ABOUT
+    END
+END
+
+IDR_MENU2 MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Decode",                     IDC_DECODE
+        MENUITEM SEPARATOR
+        MENUITEM "Save this packet...",         IDC_SAVE_BINARY
+        MENUITEM SEPARATOR
+        POPUP "Source IP"
+        BEGIN
+            MENUITEM "DNS Lookup",                  ID_POPUP_SOURCEIP_DNSLOOKUP
+
+            MENUITEM "Ping",                        ID_POPUP_SOURCEIP_PING
+            MENUITEM "Trace Route",                 ID_POPUP_SOURCEIP_TRACEROUTE
+
+            MENUITEM "Whois",                       ID_POPUP_SOURCEIP_WHOIS
+        END
+        POPUP "Destination IP"
+        BEGIN
+            MENUITEM "DNS Lookup",                  ID_POPUP_DESTINATIONIP_DNSLOOKUP
+
+            MENUITEM "Ping",                        ID_POPUP_DESTINATIONIP_PING
+
+            MENUITEM "Trace Route",                 ID_POPUP_DESTINATIONIP_TRACEROUTE
+
+            MENUITEM "Whois",                       ID_POPUP_DESTINATIONIP_WHOIS
+
+        END
+    END
+END
+
+IDR_MENU3 MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "Open...",                     ID_OPEN
+        MENUITEM "&Save as...",                 ID_SAVE
+        MENUITEM SEPARATOR
+        MENUITEM "&Print...",                   ID_PRINT_DLG
+        MENUITEM SEPARATOR
+        MENUITEM "&Close",                      ID_CLOSE
+    END
+    POPUP "&Packet"
+    BEGIN
+        MENUITEM "&Next",                       ID_PACKET_NEXT
+        MENUITEM "&Previous",                   ID_PACKET_PREVIOUS
+    END
+END
+
+IDR_MENU4 MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Open Packet...",             IDC_OPEN_PACKET
+        MENUITEM "&Save Packet...",             IDC_SAVE_PACKET
+        MENUITEM SEPARATOR
+        MENUITEM "&Close",                      ID_CLOSE
+    END
+    MENUITEM "&Send",                       IDC_SEND
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "Sumit Birla\0"
+            VALUE "FileDescription", "Network Spy\0"
+            VALUE "FileVersion", "2, 0, 0, 1\0"
+            VALUE "InternalName", "Sniffer\0"
+            VALUE "LegalCopyright", "Copyright © 1998-2003 Sumit Birla\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "Sniffer.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Network Spy 2.0  NIDS\0"
+            VALUE "ProductVersion", "2, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "nic.ico"
+IDI_ICON2               ICON    DISCARDABLE     "printer.ico"
+IDI_COPY                ICON    DISCARDABLE     "copy.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_TOOLBAR             BITMAP  DISCARDABLE     "toolbar.bmp"
+IDB_DECODER             BITMAP  DISCARDABLE     "decoderbar.bmp"
+IDB_CHECK               BITMAP  DISCARDABLE     "check.bmp"
+IDB_CROSS               BITMAP  DISCARDABLE     "stop.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AVI
+//
+
+IDR_AVI2                AVI     DISCARDABLE     "filecopy.avi"
+IDR_AVI1                AVI     DISCARDABLE     "Filedele.avi"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    iWSAEINTR               "Interrupted system call."
+    iWSAEBADF               "Bad file number."
+    iWSAEACCES              "Permission denied."
+    iWSAEFAULT              "Bad address."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    iWSAEINVAL              "Socket is already bound to this address."
+    iWSAEMFILE              "Too many open files."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    iWSAEWOULDBLOCK         "Requested operation would block."
+    iWSAEINPROGRESS         "A blocking function is in progress."
+    iWSAEALREADY            "Attempted to cancel an asynchronous operation that has already completed."
+    iWSAENOTSOCK            "Specified socket descriptor is not valid for theis application."
+    iWSAEDESTADDRREQ        "Destination address is required but none was supplied."
+    iWSAEMSGSIZE            "Datagram too large to fit in buffer."
+    iWSAEPROTOTYPE          "Specified protocol does not match the other parameters in the call."
+    iWSAENOPROTOOPT         "Invalid protocol option."
+    iWSAEPROTONOSUPPORT     "Specified protocol not supported by Windows Sockets implementation."
+    iWSAESOCKTNOSUPPORT     "Specified socket tyoe is not supported byt hte specified address family."
+    iWSAEOPNOTSUPP          "Socket does not support the specified operation."
+    iWSAEPFNOSUPPORT        "Protocol family not supported."
+    iWSAEAFNOSUPPORT        "Specified address family is either not supported by winsock implementation or cannot be used with the indicated socket."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    iWSAEADDRINUSE          "Specified address is already in use."
+    iWSAEADDRNOTAVAIL       "Specified address is not available from local machine."
+    iWSAENETDOWN            "Problem with the network subsystem."
+    iWSAENETUNREACH         "Network cannot be reached at this time."
+    iWSAENETRESET           "Connection was dropped."
+    iWSAECONNABORTED        "Connection was aborted."
+    iWSAECONNRESET          "Connection reset."
+    iWSAENOBUFS             "Winsock is out of buffer space."
+    iWSAEISCONN             "Specified socket is already connected."
+    iWSAENOTCONN            "Specified socket is not connected."
+    iWSAESHUTDOWN           "Requested functionality shut down."
+    iWSAETOOMANYREFS        "Error 10059 : Too many references."
+    iWSAETIMEDOUT           "Connection timed out."
+    iWSAECONNREFUSED        "Connection refused."
+    iWSAELOOP               "Too many levels of symbolic links."
+    iWSAENAMETOOLONG        "Name too long."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    iWSAEHOSTDOWN           "Host is down."
+    iWSAEHOSTUNREACH        "Host is unreachable."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    iWSASYSNOTREADY         "Network subsystem is not ready yet."
+    iWSAVERNOTSUPPORTED     "Winsock DLL does not support the requested protocol version."
+    iWSANOTINITIALISED      "WSAStartup() not performed yet."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    iWSAHOST_NOT_FOUND      "Host not found."
+    iWSATRY_AGAIN           "Not found. Try again later."
+    iWSANO_RECOVERY         "A non-recoverable error occured."
+    iWSANO_DATA             "No information of the requested type is in the database."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

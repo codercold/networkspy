@@ -1,0 +1,55 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: Sniffer - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\sumit\LOCALS~1\Temp\RSPE82.tmp" with contents
+[
+/nologo /ML /W3 /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fp"Release/Sniffer.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"C:\Documents and Settings\sumit\My Documents\Software Projects\Sniffer\utility.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\sumit\LOCALS~1\Temp\RSPE82.tmp" 
+Creating temporary file "C:\DOCUME~1\sumit\LOCALS~1\Temp\RSPE83.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib comctl32.lib wsock32.lib W32N50.lib QHTM.lib winspool.lib winmm.lib /nologo /entry:"ProgramEntryPoint" /subsystem:windows /incremental:no /pdb:"Release/netspy.pdb" /machine:I386 /nodefaultlib /out:"Release/netspy.exe" 
+".\Release\adapter.obj"
+".\Release\c-runtime.obj"
+".\Release\capture.obj"
+".\Release\decoder.obj"
+".\Release\dns.obj"
+".\Release\fileio.obj"
+".\Release\generator.obj"
+".\Release\HPCtrl.obj"
+".\Release\Hprxutil.obj"
+".\Release\icmp.obj"
+".\Release\logging.obj"
+".\Release\main.obj"
+".\Release\ping.obj"
+".\Release\PktRecv.obj"
+".\Release\ports.obj"
+".\Release\print.obj"
+".\Release\remote.obj"
+".\Release\rules.obj"
+".\Release\traceroute.obj"
+".\Release\traffic.obj"
+".\Release\ui.obj"
+".\Release\utility.obj"
+".\Release\whois.obj"
+".\Release\resource.res"
+]
+Creating command line "link.exe @C:\DOCUME~1\sumit\LOCALS~1\Temp\RSPE83.tmp"
+<h3>Output Window</h3>
+Compiling...
+utility.c
+Linking...
+
+
+
+<h3>Results</h3>
+netspy.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
