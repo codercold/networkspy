@@ -1,0 +1,772 @@
+#include <stdio.h>
+#include <conio.h>
+#include <windows.h>
+#include <WindowsX.h>
+#include <WinReg.H>
+#include <RegStr.H>
+#include <Assert.h>
+#include <WinIOCTL.h>
+
+#include "WiNDIS.h"
+#include "ethertype.h"
+#include "TPFilter.h"
+
+#include "common.h"
+
+
+HANDLE		g_hDevice = INVALID_HANDLE_VALUE;
+OVERLAPPED	g_OverLapped;
+char		*g_AdapterName = NULL;
+
+struct		bpf_program	g_BPFProgram = { 0, NULL };
+int			g_nBPFDumpExe = 0;
+
+char			g_szAdapterDriverDescription[ 80 ];
+DWORD			g_nMedium;
+BYTE			g_CurrentAddress[ 32 ];
+
+//BOOL			bShutdown = FALSE;					// Set by Ctrl-C Handler
+
+DWORD			g_nReceivedPacketCountCount = 0;
+DWORD			g_nSequenceErrorCount = 0;
+DWORD			g_nSequenceErrorPlus = 0;
+DWORD			g_nSequenceErrorMinus = 0;
+
+BOOL			g_bEnableLoopback = TRUE;
+
+
+DWORD			g_nLastSequenceNo = 0;
+ULONG			g_nProtocolFramesRcvGood = 0;
+ULONG			g_nRcvMissed_KernelResource = 0;	// Frames Missed, Kernel Resource
+ULONG			g_nRcvMissed_UserResource = 0;	// Frames Missed, User Resource
+char			g_szProtocolDriverDescription[ 80 ];
+
+VS_FIXEDFILEINFO	g_AppVersionInfo;
+char					g_szAppVersionString[ 16 ];
+
+#define MAX_LINK_NAME_LENGTH   64
+
+
+typedef
+struct _GSharedParms
+{
+	LONG	m_nAdapterUseCount;	// Use Count Of The Adapter By HookPeek
+}
+	GSharedParms, *PGSharedParms;
+
+
+/* HOOKPEEK Shared Memory Naming
+--------------------------------
+ * The base name for the HOOKPEEK shared memory consists of a prefix
+ * concatenated with the base name of the adapter. For example:
+ *
+ *                     Windows 95             Windows NT
+ * Adapter Name        0002                   lne100tx4
+ * Shared Memory Name  HOOKPEEKShared_0002    HOOKPEEKShared_lne100tx4
+ *
+ * On Windows NT the HOOKPEEK shared memory name will appear in the
+ * BaseNamedObjects namespace.
+ */
+#define			HOOKPEEK_PREFIX		"HOOKPEEKShared_"
+char			g_szGSharedParmsName[ _MAX_PATH ];
+HANDLE			g_hMapObject = NULL;		// handle to file mapping
+PGSharedParms	g_pGSharedParms = NULL;
+
+
+
+
+BOOLEAN DisableLoopback( VOID )
+{
+	BOOLEAN			bResult = FALSE;
+
+	switch( g_nMedium )
+	{
+    	case NdisMedium802_3:
+    	case NdisMediumDix:
+    	case NdisMedium802_5:
+			bResult = W32N_DisableLoopback(
+							g_hDevice,
+							MSrcAddr + 0,			// Offset Of Source Address Into Packet
+							ETHER_ADDR_LENGTH,		// Length Of Address
+							g_CurrentAddress		// Address Byte Bytes
+ 							);
+			break;
+
+    	case NdisMediumLocalTalk:
+    	case NdisMediumFddi:
+    	case NdisMediumWirelessWan:
+    	case NdisMediumArcnetRaw:
+    	case NdisMediumArcnet878_2:
+    	case NdisMediumAtm:
+    	case NdisMediumIrda:
+		default:
+			bResult = FALSE;
+			break;
+	}
+
+	return( bResult );
+}
+
+
+
+void WINAPI OnPacketReceivedAPC( PW32N_PACKET pUserPacketData )
+{
+	BOOL bSequenceError, bPlus;
+	char str[1024];
+
+	assert( pUserPacketData );
+
+	if( !pUserPacketData )
+	{
+		return;
+	}
+
+	assert( g_hDevice != INVALID_HANDLE_VALUE );
+
+	if( g_hDevice == INVALID_HANDLE_VALUE )
+	{
+		return;
+	}
+
+	if( bShutdown )
+	{
+		return;
+	}
+
+	if( W32N_IsWindows95() )
+	{
+		pUserPacketData->TimeReceived.QuadPart *= (LONGLONG )10000;
+	}
+
+	++g_nReceivedPacketCountCount;
+
+	bSequenceError = FALSE;
+
+	/* Check Packet Sequence Number
+	-------------------------------
+	 * A sequence number error means that the NDISHOOK driver received a
+	 * packet which it could not pass to the application because no read
+	 * was posted.
+	 *
+	 * Large packet sequence errors can be expected when dumping packets
+	 * to the console.
+	 */
+	if( g_nLastSequenceNo )
+	{
+		++g_nLastSequenceNo;
+
+		if( g_nLastSequenceNo != pUserPacketData->nPacketNumber.u.LowPart )
+		{
+			bSequenceError = TRUE;
+			g_nSequenceErrorCount += pUserPacketData->nPacketNumber.u.LowPart - g_nLastSequenceNo;
+
+			if( g_nLastSequenceNo < pUserPacketData->nPacketNumber.u.LowPart )
+			{
+				bPlus = TRUE;
+				g_nSequenceErrorPlus += pUserPacketData->nPacketNumber.u.LowPart - g_nLastSequenceNo;
+			}
+
+			if( g_nLastSequenceNo > pUserPacketData->nPacketNumber.u.LowPart )
+			{
+				bPlus = FALSE;
+				g_nSequenceErrorMinus += g_nLastSequenceNo - pUserPacketData->nPacketNumber.u.LowPart;
+			}
+		}
+	}
+
+	g_nLastSequenceNo = pUserPacketData->nPacketNumber.u.LowPart;
+
+
+	/* Display packet now */
+	wsprintf(str, "%d", pUserPacketData->nPacketNumber);
+	SetWindowText(hWndMain, str);
+
+	return;
+}
+
+
+
+
+BOOLEAN SetPacketFilter( ULONG nPacketFilter )
+{
+	HOOK_REQUEST	HookRequest;
+	NDIS_STATUS		nNdisStatus;
+
+	HookRequest.NdisRequest.RequestType = NdisRequestSetInformation;
+
+	HookRequest.NdisRequest.DATA.SET_INFORMATION.Oid = OID_GEN_CURRENT_PACKET_FILTER;
+	HookRequest.NdisRequest.DATA.SET_INFORMATION.InformationBuffer = &nPacketFilter;
+	HookRequest.NdisRequest.DATA.SET_INFORMATION.InformationBufferLength = sizeof( ULONG );
+	HookRequest.NdisRequest.DATA.SET_INFORMATION.BytesRead = 0;
+	HookRequest.NdisRequest.DATA.SET_INFORMATION.BytesNeeded = 0;
+
+	nNdisStatus = W32N_MakeNdisRequest(
+					g_hDevice,
+					&HookRequest,
+					&g_OverLapped,
+					TRUE					// Synchronous
+					);
+
+	if( nNdisStatus )
+	{
+		return( FALSE );
+	}
+
+	return( TRUE );
+}
+
+
+
+
+BOOLEAN StartReception( void )
+{
+	BOOLEAN bResult = FALSE;
+
+	g_nLastSequenceNo = 0;
+
+	switch( g_nMedium )
+	{
+    	case NdisMedium802_3:
+    	case NdisMediumDix:
+    	case NdisMedium802_5:
+			bResult = SetPacketFilter(
+							NDIS_PACKET_TYPE_DIRECTED | NDIS_PACKET_TYPE_PROMISCUOUS
+//							NDIS_PACKET_TYPE_ALL_LOCAL
+ 							);
+			break;
+
+    	case NdisMediumLocalTalk:
+			bResult = SetPacketFilter(
+							NDIS_PACKET_TYPE_DIRECTED | NDIS_PACKET_TYPE_BROADCAST
+		 					);
+			break;
+
+    	case NdisMediumFddi:
+    	case NdisMediumWirelessWan:
+    	case NdisMediumArcnetRaw:
+    	case NdisMediumArcnet878_2:
+    	case NdisMediumAtm:
+    	case NdisMediumIrda:
+		default:
+			bResult = FALSE;
+			break;
+	}
+
+	return( bResult );
+}
+
+
+
+
+BOOLEAN StopReception( void )
+{
+	return( SetPacketFilter( 0 ) );
+}
+
+
+
+char *NAMETBLE[] =
+{
+	"802.3",
+	"802.5",
+	"Fddi",
+	"Wan",
+	"LocalTalk",
+	"Dix",
+	"Arcnet (Raw)",
+	"Arcnet (878.2)",
+	"ATM",
+	"Wireless WAN",
+	"Irda"
+};
+
+
+
+BOOLEAN OidGeneralUpdateMedium( void )
+{
+	HOOK_REQUEST	HookRequest;
+	NDIS_STATUS		nNdisStatus;
+
+	/* Get Media In Use
+	------------------- */
+	g_nMedium = -1;			// Invalidate
+
+	HookRequest.NdisRequest.RequestType = NdisRequestQueryInformation;
+
+	HookRequest.NdisRequest.DATA.QUERY_INFORMATION.Oid = OID_GEN_MEDIA_IN_USE;
+	HookRequest.NdisRequest.DATA.QUERY_INFORMATION.InformationBuffer = &g_nMedium;
+	HookRequest.NdisRequest.DATA.QUERY_INFORMATION.InformationBufferLength = sizeof( g_nMedium );
+	HookRequest.NdisRequest.DATA.QUERY_INFORMATION.BytesWritten = 0;
+	HookRequest.NdisRequest.DATA.QUERY_INFORMATION.BytesNeeded = 0;
+
+	nNdisStatus = W32N_MakeNdisRequest(
+					g_hDevice,
+					&HookRequest,
+					&g_OverLapped,
+					TRUE					// Synchronous
+					);
+
+	if( nNdisStatus )
+	{
+		return( FALSE );
+	}
+
+
+	if( NdisMedium802_3 <= g_nMedium
+		&& g_nMedium < NdisMediumArcnet878_2 )
+	{
+		//printf( "Adapter Medium : %s\n", NAMETBLE[ g_nMedium ] );
+	}
+
+	return( TRUE );
+}
+
+
+
+#define NUM_PACKET_PACKS		48
+
+
+typedef struct _PacketPack
+{
+	W32N_PACKET		UserPacketData;
+	DWORD			nBytesReturned;
+	OVERLAPPED		OverLapped;
+} PacketPack, *PPacketPack;
+
+
+
+void DestroyPackages( PPacketPack pPackageBase, DWORD nPackageCount )
+{
+	int					i;
+	PPacketPack			pPackage;
+
+	assert( pPackageBase );
+
+	if( !pPackageBase )
+		return;
+
+
+	for( i = 0; i < NUM_PACKET_PACKS; i++ )
+	{
+		pPackage = &pPackageBase[ i ];
+		if( pPackage->OverLapped.hEvent )
+			CloseHandle( pPackage->OverLapped.hEvent );
+	}
+
+	free( pPackageBase );
+}
+
+
+
+PPacketPack CreatePackages( DWORD nPackageCount )
+{
+	int					i;
+	PPacketPack			pPackage, pPackageBase;
+
+	
+	pPackageBase = (PPacketPack )malloc( sizeof( PacketPack ) * nPackageCount );
+	assert( pPackageBase );
+
+	if( !pPackageBase )
+	{
+		return( NULL );
+	}
+
+	
+	for( i = 0; i < NUM_PACKET_PACKS; i++ )
+	{
+		pPackage = &pPackageBase[ i ];
+		memset( pPackage, 0x00, sizeof( PacketPack ) );
+	}
+
+	/* Create Event Handles For Each Package
+	---------------------------------------- */
+	for( i = 0; i < NUM_PACKET_PACKS; i++ )
+	{
+		pPackage = &pPackageBase[ i ];
+
+		pPackage->OverLapped.hEvent = CreateEvent(NULL,	FALSE,FALSE,NULL);
+		assert( pPackage->OverLapped.hEvent );
+
+		if( !pPackage->OverLapped.hEvent )
+		{
+			DestroyPackages( pPackageBase, nPackageCount );
+
+			return( NULL );
+		}
+	}
+
+	return( pPackageBase );
+}
+
+HANDLE	PackageHandles[ NUM_PACKET_PACKS ];
+
+
+
+void ParseCommandLine( )
+{
+	g_bEnableLoopback = TRUE;
+				
+				
+/*	TPF_ConcatBPFProgram( &g_BPFProgram, TFP_ARP_PROTO );
+	TPF_ConcatBPFProgram( &g_BPFProgram, TFP_IP_PROTO_ICMP );
+	TPF_ConcatBPFProgram( &g_BPFProgram, TFP_IP_PROTO_IGMP );
+	TPF_ConcatBPFProgram( &g_BPFProgram, TFP_IP_PROTO );
+	TPF_ConcatBPFProgram( &g_BPFProgram, TFP_RARP_PROTO );
+	TPF_ConcatBPFProgram( &g_BPFProgram, TFP_IP_PROTO_TCP );
+	TPF_ConcatBPFProgram( &g_BPFProgram, TFP_IP_PROTO_UDP );
+*/	TPF_InitBPFProgram( &g_BPFProgram ); //all
+
+}
+
+
+
+int WinDis( VOID )
+{
+	BOOLEAN			bResult, bInit, bIgnore;
+	DWORD			nResult;
+	char			*s;
+	int				i, nNextPackage;
+	PPacketPack		pPackage, pPackageBase = NULL;
+
+
+	TPF_InitBPFProgram( &g_BPFProgram );
+
+	ParseCommandLine( );
+
+	g_hDevice = W32N_OpenAdapter( "0001" );
+
+	if( g_hDevice == INVALID_HANDLE_VALUE )
+	{
+		TPF_FreeBPFProgram( &g_BPFProgram );
+		return( 0 );
+	}
+
+	printf( "Adapter Opened\n" );
+
+	g_OverLapped.hEvent = CreateEvent(NULL,FALSE,FALSE,NULL);
+
+	if( !g_OverLapped.hEvent )
+	{
+		W32N_CloseAdapter( g_hDevice );
+		TPF_FreeBPFProgram( &g_BPFProgram );
+
+		return( 0 );
+	}
+
+	ResetEvent( g_OverLapped.hEvent );
+
+	if( !g_bEnableLoopback )
+	{
+	 	DisableLoopback();
+	}
+
+
+	pPackageBase = CreatePackages( NUM_PACKET_PACKS );
+	assert( pPackageBase );
+
+	if( !pPackageBase )
+	{
+		TPF_FreeBPFProgram( &g_BPFProgram );
+		exit( 2 );
+	}
+
+	/* Build Handle Array For Call To WaitForMultipleObjects
+	-------------------------------------------------------- */
+	for( i = 0; i < NUM_PACKET_PACKS; i++ )
+	{
+		pPackage = &pPackageBase[ i ];
+		PackageHandles[ i ] = pPackage->OverLapped.hEvent;
+	}
+
+	/* Create The Shared Memory
+	--------------------------- */
+	s = strrchr( g_AdapterName, '\\' );
+
+	if( s )
+	{
+		++s;
+	}
+	else
+	{
+		s = g_AdapterName;
+	}
+
+	if( s && *s )
+	{
+		wsprintf(
+			g_szGSharedParmsName,
+			"%s%s",
+			HOOKPEEK_PREFIX,
+			s
+			);
+
+		g_hMapObject = CreateFileMapping( 
+         	(HANDLE) 0xFFFFFFFF, // use paging file
+         	NULL,                // no security attributes
+         	PAGE_READWRITE,      // read/write access
+         	0,                   // size: high 32-bits
+         	sizeof( GSharedParms ),	// size: low 32-bits
+         	g_szGSharedParmsName	// name of map object
+				);
+
+   	if( g_hMapObject == NULL )
+		{
+			printf( "HookPeek could not create shared memory file.\n" );
+			return( -1 );
+		}
+
+  		/* The First Process To Attach Initializes Memory
+		------------------------------------------------- */
+  		bInit = (GetLastError() != ERROR_ALREADY_EXISTS); 
+
+  		/* Get A Pointer To The File-Mapped Shared Memory
+		------------------------------------------------- */
+  		g_pGSharedParms = (PGSharedParms )MapViewOfFile( 
+         		g_hMapObject,     // object to map view of
+         		FILE_MAP_WRITE, // read/write access
+         		0,              // high offset:  map from
+         		0,              // low offset:   beginning
+         		0);             // default: map entire file
+
+  		if (g_pGSharedParms == NULL) 
+        		return FALSE; 
+
+  		/* Initialize Memory If This Is The First Process
+		------------------------------------------------- */
+  		if( bInit ) 
+        		memset(g_pGSharedParms, '\0', sizeof( GSharedParms ) );
+	}
+
+	/* Increment Usage Count
+	------------------------ */
+	if( g_pGSharedParms )
+	{
+		InterlockedIncrement( &g_pGSharedParms->m_nAdapterUseCount );
+	}
+
+
+
+	bShutdown = FALSE;
+
+	/* Start All The Packet Reads
+	----------------------------- */
+	for( i = 0; i < NUM_PACKET_PACKS; i++ )
+	{
+		pPackage = &pPackageBase[ i ];
+
+		/* Post The First Packet Read
+		----------------------------- */
+		W32N_PacketRead(
+			g_hDevice,
+			&pPackage->UserPacketData,
+			&pPackage->nBytesReturned,
+			&pPackage->OverLapped,
+			FALSE				// DON'T WAIT....
+			);
+	}
+
+	nNextPackage = 0;		// Index Of Next Package To Read On
+
+	printf( "Starting Packet Reception...\n" );
+
+
+	/* Handle The BPF Filter Program, If Any
+	---------------------------------------- */
+	if( g_BPFProgram.bf_len && g_BPFProgram.bf_insns )
+	{
+		/* Pass Down BPF Program
+		------------------------ */
+		W32N_SetBPFProgram( 
+					g_hDevice,
+					g_BPFProgram.bf_insns,
+					g_BPFProgram.bf_len * sizeof( struct bpf_insn )
+					);
+
+	}
+	else
+	{
+		/* Remove Any Existing BPF Program
+		---------------------------------- */
+		W32N_SetBPFProgram( 
+					g_hDevice,
+					NULL,
+					0
+					);
+	}
+
+	
+	TPF_FreeBPFProgram( &g_BPFProgram );
+
+	/* Call Driver To Start Reception
+	---------------------------------
+	 * Only allow FIRST instance of HookPeek to set the global BPF.
+	 */
+	if( g_pGSharedParms && g_hMapObject
+		&& g_pGSharedParms->m_nAdapterUseCount == 1
+		)
+	{
+		bResult = StartReception();
+	}
+	else
+	{
+		bResult = TRUE;	// Reception Started By First Instance
+	}
+
+	if( !bResult )
+	{
+		W32N_CloseAdapter( g_hDevice );
+		DestroyPackages( pPackageBase, NUM_PACKET_PACKS );
+		CloseHandle( g_OverLapped.hEvent );
+
+		exit( 3 );
+	}
+
+
+	/* Loop Until Shutdown
+	---------------------- */
+	while( !bShutdown )
+	{
+		/* Wait For One Or More Packet Reads To Complete */
+		nResult = WaitForMultipleObjects(
+								NUM_PACKET_PACKS,
+								PackageHandles,
+								FALSE,
+								500					// .5-sec.
+								);
+
+		if( bShutdown )
+		{
+			break;
+		}
+
+		/* Handle Based On Wait Result
+		------------------------------ */
+		if( WAIT_OBJECT_0 <= nResult &&
+				nResult <= WAIT_OBJECT_0 + NUM_PACKET_PACKS - 1
+			)
+		{
+			
+			i = nResult - WAIT_OBJECT_0;	// ATTENTION!!! Ignore This Value!!!
+
+			pPackage = &pPackageBase[ nNextPackage ];	// Pointer To Expected Package
+
+			/* Sequentially Read On Expected Package Sequence
+			-------------------------------------------------
+			 * When WaitForMultipleObjects returns, one OR MORE reads have
+			 * completed successfully. The following loop reads on packet
+			 * packages sequentially until one is encountered which still
+			 * has I/O pending.
+			 */
+			do
+			{
+				/* Check For Error */
+				if( pPackage->UserPacketData.nNdisStatus != NDIS_STATUS_SUCCESS )
+				{
+					bShutdown = TRUE;
+
+					break;
+				}
+
+				OnPacketReceivedAPC( &pPackage->UserPacketData );
+
+				if( !bShutdown )
+				{
+					/* Post Another Packet Read
+					--------------------------- */
+					nResult = W32N_PacketRead(
+									g_hDevice,
+									&pPackage->UserPacketData,
+									&pPackage->nBytesReturned,
+									&pPackage->OverLapped,
+									FALSE				// DON'T WAIT....
+									);
+				}
+
+				/* Move To The Next Sequential Packet Package
+				--------------------------------------------- */
+				if( ++nNextPackage >= NUM_PACKET_PACKS )
+				{
+					nNextPackage = 0;		// Wrap-around
+				}
+
+				pPackage = &pPackageBase[ nNextPackage ];	// Pointer To Expected Package
+			}
+   			while( !bShutdown && GetOverlappedResult(g_hDevice,	&pPackage->OverLapped, &pPackage->nBytesReturned,FALSE));
+		}
+		else if( WAIT_ABANDONED_0 <= nResult &&
+				nResult <= WAIT_ABANDONED_0 + NUM_PACKET_PACKS - 1
+			)
+		{
+
+			/* Notes
+			--------
+			 * Entry into this case means that one (or more) reads were
+			 * abandoned.
+			 *
+			 * The parameter i, calculated below, identifies which read
+			 * operation caused WaitForMultipleObjects to return.
+			 */
+			i = nResult - WAIT_ABANDONED_0;
+
+			bShutdown = TRUE;
+
+			break;
+		}
+		else if( nResult == WAIT_TIMEOUT )
+		{
+			if( bShutdown )
+			{
+				break;
+			}
+		}
+		else
+		{
+			printf( "Unhandled Read Wait Result: 0x%X\n", nResult );
+
+			bShutdown = TRUE;
+
+			break;
+		}
+	}
+
+	/* Handle Possible Closing Of Shared Memory
+	------------------------------------------- */
+	if( g_pGSharedParms )
+	{
+		/* Decrement Usage Count
+		------------------------ */
+		InterlockedDecrement( &g_pGSharedParms->m_nAdapterUseCount );
+
+		if( g_pGSharedParms->m_nAdapterUseCount == 0 )
+		{
+			StopReception();
+		}
+
+		/* Unmap Shared Memory From The Process's Address Space
+		------------------------------------------------------- */
+		bIgnore = UnmapViewOfFile( g_pGSharedParms );
+
+		g_pGSharedParms = NULL;
+	}
+
+	if( g_hMapObject )
+		CloseHandle(g_hMapObject);
+
+	g_hMapObject = NULL;
+
+	
+	if( g_hDevice != INVALID_HANDLE_VALUE )
+		W32N_CloseAdapter( g_hDevice );
+
+	g_hDevice = INVALID_HANDLE_VALUE;
+
+	DestroyPackages( pPackageBase, NUM_PACKET_PACKS );
+
+	if( g_OverLapped.hEvent )
+		CloseHandle( g_OverLapped.hEvent );
+
+	g_OverLapped.hEvent = NULL;
+	
+	return( 0 );
+}

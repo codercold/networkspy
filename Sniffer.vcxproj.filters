@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="resources">
+      <UniqueIdentifier>{e27e6e23-2754-46f0-9f12-a9133bac58a8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="check.bmp">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="copy.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="decoderbar.bmp">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="logo.png">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="nic.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="printer.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="stop.bmp">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="toolbar.bmp">
+      <Filter>resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="filecopy.avi">
+      <Filter>resources</Filter>
+    </None>
+    <None Include="Filedele.avi">
+      <Filter>resources</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="adapter.c" />
+    <ClCompile Include="c-runtime.c" />
+    <ClCompile Include="capture.c" />
+    <ClCompile Include="decoder.c" />
+    <ClCompile Include="dns.c" />
+    <ClCompile Include="fileio.c" />
+    <ClCompile Include="generator.c" />
+    <ClCompile Include="HPCtrl.c" />
+    <ClCompile Include="Hprxutil.c" />
+    <ClCompile Include="icmp.c" />
+    <ClCompile Include="logging.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="ping.c" />
+    <ClCompile Include="PktRecv.c" />
+    <ClCompile Include="ports.c" />
+    <ClCompile Include="print.c" />
+    <ClCompile Include="remote.c" />
+    <ClCompile Include="rules.c" />
+    <ClCompile Include="traceroute.c" />
+    <ClCompile Include="traffic.c" />
+    <ClCompile Include="ui.c" />
+    <ClCompile Include="utility.c" />
+    <ClCompile Include="whois.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="adapter.h" />
+    <ClInclude Include="Bpf.h" />
+    <ClInclude Include="c-runtime.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="dns.h" />
+    <ClInclude Include="fileio.h" />
+    <ClInclude Include="globals.h" />
+    <ClInclude Include="Hookutil.h" />
+    <ClInclude Include="icmp.h" />
+    <ClInclude Include="logging.h" />
+    <ClInclude Include="Pcaenet.h" />
+    <ClInclude Include="ping.h" />
+    <ClInclude Include="QHTM.H" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="rules.h" />
+    <ClInclude Include="structs.h" />
+    <ClInclude Include="Tpfilter.h" />
+    <ClInclude Include="traceroute.h" />
+    <ClInclude Include="traffic.h" />
+    <ClInclude Include="ui.h" />
+    <ClInclude Include="utility.h" />
+    <ClInclude Include="w32ndis.h" />
+    <ClInclude Include="whois.h" />
+    <ClInclude Include="WinDis.h" />
+    <ClInclude Include="AFXRES.H" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="notes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+</Project>
